@@ -12,6 +12,7 @@ from .auxillaryFunctions import *
 import json
 # from .logs.logging_config import logger
 from logs.logging_config import logger
+
 # Create your views here.
 
 def home(request):
@@ -46,17 +47,41 @@ class MyModelListAPIView(generics.ListAPIView):
     queryset = Record.objects.all()
     serializer_class=MyModelSerializer
 
+
+
+
+
+
+
+# APIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPIAPI
+    
+
 @require_http_methods(['GET'])
 def show_records_of_interest(request):
     logger.info("show_records function")
     # Retrieve all instances of the MyInterest model
-    interests = MyInterest.objects.all()
-
-    # Convert queryset to a list of dictionaries (each instance is represented as a dictionary)
-    interests_list = [{'name': interest.name, 'interest': interest.interest,} for interest in interests]
+    interests = MyInterest.objects.all().order_by('name')
+    # Set the number of items per page
+    items_per_page=10
+    # Get the current page from the request's GET parameter
+    page_number = request.GET.get('page',1)
+    current_page,paginator = pagination_function(interests,items_per_page,page_number)
+    # Convert queryset to a list of dictionaries 
+    # (each instance is represented as a dictionary)
+    interests_list = [{'id':interest.id,
+                       'name': interest.name, 
+                       'interest': interest.interest
+                       } for interest in current_page.object_list]
 
     # Return the result as JSON
-    return JsonResponse({'interests': interests_list}, safe=False)
+    return JsonResponse({'count': paginator.count, 
+                         'interests': interests_list, 
+                         'current_page': current_page.number, 
+                         'total_pages': paginator.num_pages
+                         }, 
+                         safe=False)
+
+
 
 @require_http_methods(['POST'])
 @csrf_exempt
@@ -96,3 +121,8 @@ def add_interests(request):
         # Return an error response if something goes wrong
         logger.error("add_interest function", str(e))
         return JsonResponse({'error': str(e)}, status=500)
+
+@require_http_methods(["PUT"])
+@csrf_exempt
+def delete_interests(request):
+    logger.info("delete_interests")

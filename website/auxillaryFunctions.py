@@ -1,6 +1,7 @@
 from logs.logging_config import logger
 from .error_codes import ErrorCodes
 from .models import MyInterest
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def validate_input(name, interest):
     logger.info("start validate_input function")
@@ -26,6 +27,23 @@ def validate_input(name, interest):
 
 
 def check_existing_name(name):
+    logger.info("check_existing_name")
     if MyInterest.objects.filter(name=name).exists():
         return ErrorCodes.name_interest["NAME_EXISTS"], False
     return None, True
+
+
+def pagination_function(objects,items_per_page,page_number):
+    # create paginator instance
+    paginator = Paginator(objects,items_per_page)
+
+    try:
+        # Get the page object for the current page
+        current_page = paginator.page(page_number)
+        return current_page,paginator
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        return paginator.page(1),paginator
+    except EmptyPage:
+        # If the requested page is out of range, return an empty list
+        return paginator.page(1),paginator
