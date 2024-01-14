@@ -10,6 +10,8 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from .auxillaryFunctions import *
 import json
+# from .logs.logging_config import logger
+from logs.logging_config import logger
 # Create your views here.
 
 def home(request):
@@ -46,6 +48,7 @@ class MyModelListAPIView(generics.ListAPIView):
 
 @require_http_methods(['GET'])
 def show_records_of_interest(request):
+    logger.info("show_records function")
     # Retrieve all instances of the MyInterest model
     interests = MyInterest.objects.all()
 
@@ -58,7 +61,7 @@ def show_records_of_interest(request):
 @require_http_methods(['POST'])
 @csrf_exempt
 def add_interests(request):
-     # Get the name and interest from the POST request
+    logger.info("start add_interest function")
 
     # Parse JSON data from the request body
     json_data = json.loads(request.body.decode('utf-8'))
@@ -67,10 +70,7 @@ def add_interests(request):
     name = json_data.get('name', '')
     interest = json_data.get('interest', '')
 
-    # name = request.POST.get('name','')
-    # interest = request.POST.get('interest','')
-    print('name',name)
-    print('interest',interest)
+    logger.info("name: {0}\ninterest: {1}".format(name, interest))
 
     # Validate input data
     validation_result, is_valid = validate_input(name, interest)
@@ -78,14 +78,21 @@ def add_interests(request):
     if not is_valid:
         return JsonResponse(validation_result, status=400)
 
-
-
     try:
+        # Check if the name already exists
+        validation_result, is_valid = check_existing_name(name)
+        if not is_valid:
+            return JsonResponse(validation_result, status=400)
+
         # Create an instance of MyInterest model
-        new_interest=MyInterest(name=name,interest=interest)
+        new_interest = MyInterest(name=name, interest=interest)
+
         # Save the instance to the database
         new_interest.save()
+
+        logger.info("end add_interest function")
         return JsonResponse({'message': 'Interest added successfully'}, status=201)
     except Exception as e:
         # Return an error response if something goes wrong
+        logger.error("add_interest function", str(e))
         return JsonResponse({'error': str(e)}, status=500)
