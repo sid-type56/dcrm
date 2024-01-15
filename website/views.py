@@ -87,42 +87,28 @@ def show_records_of_interest(request):
 @csrf_exempt
 def add_interests(request):
     logger.info("start add_interest function")
-
     # Parse JSON data from the request body
     json_data = json.loads(request.body.decode('utf-8'))
-    
     # Get the name and interest from the parsed JSON data
     name = json_data.get('name', '')
     interest = json_data.get('interest', '')
-
     logger.info("name: {0}\ninterest: {1}".format(name, interest))
-
     # Validate input data
     validation_result, is_valid = validate_input(name, interest)
-    
     if not is_valid:
         return JsonResponse(validation_result, status=400)
-
     try:
         # Check if the name already exists
         validation_result, is_valid = check_existing_name(name)
         if not is_valid:
             return JsonResponse(validation_result, status=400)
-
         # Create an instance of MyInterest model
         new_interest = MyInterest(name=name, interest=interest)
-
         # Save the instance to the database
         new_interest.save()
-
         logger.info("end add_interest function")
-        return JsonResponse({'message': 'Interest added successfully'}, status=201)
+        return JsonResponse({'status':'success','message': 'Interest added successfully'}, status=201)
     except Exception as e:
         # Return an error response if something goes wrong
         logger.error("add_interest function", str(e))
         return JsonResponse({'error': str(e)}, status=500)
-
-@require_http_methods(["PUT"])
-@csrf_exempt
-def delete_interests(request):
-    logger.info("delete_interests")
