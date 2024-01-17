@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from rest_framework import serializers
-from .models import Record ,MyInterest
+from .models import Record ,MyInterest,MyImages
 from rest_framework import generics
 from .serializers import MyModelSerializer
 from django.http import JsonResponse
@@ -10,8 +10,9 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from .auxillaryFunctions import *
 import json
-# from .logs.logging_config import logger
 from logs.logging_config import logger
+from django.utils import timezone
+from django.core.serializers.json import DjangoJSONEncoder
 
 # Create your views here.
 
@@ -43,9 +44,7 @@ def register_user(request):
     return render(request,'register.html',{})
 
 
-class MyModelListAPIView(generics.ListAPIView):
-    queryset = Record.objects.all()
-    serializer_class=MyModelSerializer
+
 
 
 
@@ -112,3 +111,52 @@ def add_interests(request):
         # Return an error response if something goes wrong
         logger.error("add_interest function", str(e))
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(['POST'])
+@csrf_exempt
+def image_upload(request):
+    logger.info("Image Upload")    
+    try:
+        m_name = request.POST.get('name','')
+        m_image =request.FILES.get('image','')
+        print({'name':m_name,'image':m_image})
+        logger.info({'name':m_name,'image':m_image})
+        new_my_images=MyImages(name=m_name,image=m_image)
+        new_my_images.save()
+        return JsonResponse({'success':'data succesfully added'},status=200)
+    except Exception as e:
+        return JsonResponse({'error':e},status=500)
+    
+
+@require_http_methods(['POST'])
+@csrf_exempt
+def tell_time(request):
+    logger.info('Tell Time')
+    time = timezone.now()
+    return JsonResponse({'time':time})
+
+
+@require_http_methods(['GET'])
+def show_image(request):
+    logger.info('show_image function')
+    json_request=request.body.decode('utf-8')
+    json_data=json.loads(json_request)
+    image_id=json_data.get('id',0)
+    logger.info({'image_id\t':image_id})
+    try:
+        validation_result,is_valid=validate_id(image_id)
+        if not is_valid:
+            return JsonResponse(validation_result,status=400)
+        new_my_images = MyImages.objects.filter(id=image_id).first()
+        print('no problem here')
+        if not new_my_images:
+            return JsonResponse(ErrorCodes.name_interest['INVALID_ID'])
+        image_data={
+            'id':new_my_images.id,
+            'name':new_my_images.name,
+            'image':new_my_images.image.url
+        }
+        return JsonResponse({'status':'success','image':image_data},encoder=DjangoJSONEncoder)
+    except Exception as e:
+        return JsonResponse({'error':e},status=500)

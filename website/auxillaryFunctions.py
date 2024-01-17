@@ -2,6 +2,7 @@ from logs.logging_config import logger
 from .error_codes import ErrorCodes
 from .models import MyInterest
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import math
 
 def validate_input(name, interest):
     logger.info("start validate_input function")
@@ -47,3 +48,12 @@ def pagination_function(objects,items_per_page,page_number):
     except EmptyPage:
         # If the requested page is out of range, return an empty list
         return paginator.page(1),paginator
+
+def validate_id(id):
+    try:
+        id = int(id)
+        if id < 1:
+            return ErrorCodes.name_interest["INVALID_ID"], False
+        return None, True
+    except ValueError:
+        return ErrorCodes.name_interest["INVALID_ID"], False

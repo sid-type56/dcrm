@@ -22,3 +22,10 @@ class MyInterest(models.Model):
 
     def __str__(self):
         return (f"{self.name}{self.interest}")
+    
+class MyImages(models.Model):
+    name=models.CharField(max_length=50)
+    image=models.ImageField(null=True,blank=True,upload_to="images/")
+
+    def __str__(self):
+        return None 
