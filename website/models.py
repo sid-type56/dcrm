@@ -1,13 +1,15 @@
 from django.db import models
 from django.utils import timezone
+from django.core.validators import MinLengthValidator
 
 # Create your models here.
 
 class Record(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-    first_name = models.CharField(max_length = 50)
-    last_name = models.CharField(max_length=50)
-    phone = models.CharField(max_length=10)
+    email=models.EmailField(default='example@example.com')
+    first_name = models.CharField(max_length = 50,validators=[MinLengthValidator(2)])
+    last_name = models.CharField(max_length=50,validators=[MinLengthValidator(2)])
+    phone = models.CharField(max_length=10,validators=[MinLengthValidator(10)])
     updated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

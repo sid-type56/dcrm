@@ -13,4 +13,5 @@ urlpatterns = [
     path('api/add-images/',views.image_upload,name='image_upload'),
     path('api/tell-time/',views.tell_time,name='tell_time'),
     path('api/show-image/',views.show_image,name='show_image'),
+    path('api/regster-user/',views.add_user,name='add_user')
 ]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

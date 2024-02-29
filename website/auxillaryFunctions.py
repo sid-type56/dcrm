@@ -3,6 +3,8 @@ from .error_codes import ErrorCodes
 from .models import MyInterest
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import math
+from email_validator import validate_email,EmailNotValidError
+
 
 def validate_input(name, interest):
     logger.info("start validate_input function")
@@ -57,3 +59,12 @@ def validate_id(id):
         return None, True
     except ValueError:
         return ErrorCodes.name_interest["INVALID_ID"], False
+
+def validating_emails(email):
+    try:
+        validate_email(email)
+        return True
+    except EmailNotValidError:
+        return ErrorCodes.registration["INVALID_EMAIL"]
+    except Exception:
+        return ErrorCodes.registration["INVALID_EMAIL"]

@@ -16,3 +16,9 @@ class ErrorCodes:
         "NAME_EXISTS":generate_error_message("2004","name already exists"),
         "INVALID_ID":generate_error_message("2005","invalid id")
     }
+
+    registration={
+        "NAME_SIZE":generate_error_message("3000","Names should be in the limit 2-50 characters"),
+        "INVALID_PHONE_NUMBER":generate_error_message("3001","Invalid phone number"),
+        "INVALID_EMAIL":generate_error_message("3002","Invalid Email id")
+    }

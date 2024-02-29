@@ -13,7 +13,11 @@ import json
 from logs.logging_config import logger
 from django.utils import timezone
 from django.core.serializers.json import DjangoJSONEncoder
-
+from .error_codes import ErrorCodes
+import re
+from dotenv import load_dotenv
+import os
+load_dotenv()
 # Create your views here.
 
 def home(request):
@@ -160,3 +164,28 @@ def show_image(request):
         return JsonResponse({'status':'success','image':image_data},encoder=DjangoJSONEncoder)
     except Exception as e:
         return JsonResponse({'error':e},status=500)
+    
+
+@require_http_methods(['POST'])
+@csrf_exempt
+def add_user(request):
+    logger.info('add_user')
+    phone_number_pattern = os.getenv("PHONE_NUMBER_PATTERN")
+    
+    try:
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+        validating_emails(email)
+        if(len(first_name)>50 or len(first_name)<2 or len(last_name)>50 or len(last_name)<2):
+            return JsonResponse(ErrorCodes.registration["NAME_SIZE"],status=400)
+        if(not re.match(phone_number_pattern,phone)):
+            return JsonResponse(ErrorCodes.registration["INVALID_PHONE_NUMBER"])
+        new_record = Record(first_name=first_name,last_name=last_name,phone=phone)
+        new_record.save()
+        logger.info("new user {0} added".format(first_name))
+        return JsonResponse({"status":"success","message":"{0} added succesfully".format(first_name)},status=201)
+    except Exception as e:
+        logger.error("add_user ",str(e))
+        return JsonResponse({"error":str(e)},status=500)
