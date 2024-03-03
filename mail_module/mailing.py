@@ -27,8 +27,6 @@ def send_email(sender_email, recipient_email, subject, body):
         server.login(smtp_username, smtp_password)
         server.sendmail(sender_email, recipient_email, message.as_string())
 
-    print("Email sent successfully!")
 
 # Example usage
-print("here we go")
 send_email(os.getenv("MAIL_SERVER"), os.getenv("MAIL_RECIPIENT"), 'Test Email', 'This is a test email.')

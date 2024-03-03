@@ -1,9 +1,10 @@
 from logs.logging_config import logger
 from .error_codes import ErrorCodes
-from .models import MyInterest
+from .models import User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import math
 from email_validator import validate_email,EmailNotValidError
+from django.http import JsonResponse
 
 
 def validate_input(name, interest):
@@ -29,11 +30,17 @@ def validate_input(name, interest):
     return None, True
 
 
-def check_existing_name(name):
-    logger.info("check_existing_name")
-    if MyInterest.objects.filter(name=name).exists():
-        return ErrorCodes.name_interest["NAME_EXISTS"], False
-    return None, True
+def check_existing_email(email):
+    logger.info("check_existing_email")
+    try:
+        email_check=User.objects.filter(email=email).exists()
+        if email_check :
+            return JsonResponse(ErrorCodes.registration["EMAIL_ALREADY_EXISTS"])
+        else:
+            return None
+    except Exception as e:
+        logger.error("check_existing_email ",e)
+        return JsonResponse(ErrorCodes.unexpected_errors["UNKNOWN_ERROR"])
 
 
 def pagination_function(objects,items_per_page,page_number):
@@ -63,8 +70,8 @@ def validate_id(id):
 def validating_emails(email):
     try:
         validate_email(email)
-        return True
+        return None
     except EmailNotValidError:
-        return ErrorCodes.registration["INVALID_EMAIL"]
+        return JsonResponse(ErrorCodes.registration["INVALID_EMAIL"])
     except Exception:
-        return ErrorCodes.registration["INVALID_EMAIL"]
+        return JsonResponse(ErrorCodes.registration["INVALID_EMAIL"])
