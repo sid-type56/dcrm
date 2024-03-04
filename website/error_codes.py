@@ -8,6 +8,11 @@ class ErrorCodes:
                 "message":message
                 }
 
+    unexpected_errors={
+        "UNKNOWN_ERROR":generate_error_message("1000","Unknown Error")
+    }
+
+
     name_interest={
         "NAME_SIZE_UPPER_LIMIT":generate_error_message("2000"," Name should not exceed 100 characters"),
         "INTEREST_SIZE_UPPER_LIMIT":generate_error_message("2001"," Interest should not exceed 100 characters"),
@@ -27,6 +32,7 @@ class ErrorCodes:
         "INVALID_PASSWORD":generate_error_message("3006","password require atlest 1 alphabet , 1 digit, length between 8-128 and should contain special characters")
     }
 
-    unexpected_errors={
-        "UNKNOWN_ERROR":generate_error_message("1000","Unknown Error")
+    authentication={
+        "LOGIN_CREDENTIALS_REQUIRED":generate_error_message("4000","Email and password are required"),
+        "AUTH_FAILED":generate_error_message("4001","Invalid email or password")
     }

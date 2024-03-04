@@ -19,32 +19,54 @@ from dotenv import load_dotenv
 import os
 from rest_framework.decorators import api_view
 from django.db import transaction
+from rest_framework.authtoken.models import Token
+
 load_dotenv()
 # Create your views here.
 
-def home(request):
-    #check to see if logging in
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+# def home(request):
+#     #check to see if logging in
+#     if request.method == 'POST':
+#         username = request.POST['username']
+#         password = request.POST['password']
 
-        #Authenticate
-        user = authenticate(request,username = username,password=password)
+#         #Authenticate
+#         user = authenticate(request,username = username,password=password)
+#         if user is not None:
+#             login(request,user)
+#             messages.success(request,"You have been logged in")
+#             return redirect('home')
+#         else:
+#             messages.success(request,"Error login")
+#             return redirect('home')
+#     return render(request,'home.html',{})
+
+@api_view(['POST'])
+@csrf_exempt
+def user_login(request):
+    logger.info("user_login")
+    email = request.POST.get("email")
+    password = request.POST.get("password")
+    if (not email or not password):
+        return JsonResponse(ErrorCodes.authentication["LOGIN_CREDENTIALS_REQUIRED"],status=400)
+    try:
+        user = authenticate(email=email,password=password)
+        logger.debug("email\t{0}\npassword\t{1}".format(email,password))
+        logger.debug(user)
         if user is not None:
             login(request,user)
-            messages.success(request,"You have been logged in")
-            return redirect('home')
+            token,created=Token.objects.get_or_create(user=user)
+            return JsonResponse({"token":token.key})
         else:
-            messages.success(request,"Error login")
-            return redirect('home')
-    return render(request,'home.html',{})
+            return JsonResponse(ErrorCodes.authentication["AUTH_FAILED"],status=400)
+    except Exception as e:
+        logger.error("user_login"+str(e))
+        return JsonResponse({"status":"error","message":str(e)},status=500)
 
-
-
-def logout_user(request):
-    logout(request)
-    messages.success(request,'you have been logged out!!')
-    return redirect('home')
+# def logout_user(request):
+#     logout(request)
+#     messages.success(request,'you have been logged out!!')
+#     return redirect('home')
 
 # def register_user(request):
 #     return render(request,'register.html',{})
@@ -72,7 +94,8 @@ def tell_time(request):
 def add_user(request):
     logger.info('add_user')
     phone_number_pattern = os.getenv("PHONE_NUMBER_PATTERN")
-    password_pattern = os.getenv("PASSWORD_PATTERN")
+    # password_pattern = os.getenv("PASSWORD_PATTERN")
+    password_pattern=r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,128}$'
     
     try:
         first_name = request.POST.get('first_name')
@@ -80,6 +103,7 @@ def add_user(request):
         phone = request.POST.get('phone')
         email = request.POST.get('email')
         password = request.POST.get('password')
+        logger.debug("password_pattern\t{0}\npassword\t{1}".format(password_pattern,password))
         if(not re.match(password_pattern,password)):
             return JsonResponse(ErrorCodes.registration["INVALID_PASSWORD"],status=400)
         if (not email or not first_name or not last_name):
@@ -118,9 +142,8 @@ def add_user(request):
         logger.info("new user {0} added".format(first_name))
         return JsonResponse({"status":"success","message":"{0} added succesfully".format(first_name)},status=201)
     except Exception as e:
-        logger.error("add_user ",str(e))
-        return JsonResponse({"error":str(e)},status=500)
-
+        logger.error("add_user "+str(e))
+        return JsonResponse({"status":"error","message":str(e)},status=500)
 
 
 # @api_view(['POST'])
