@@ -1,6 +1,6 @@
 from logs.logging_config import logger
 from .error_codes import ErrorCodes
-from .models import User
+from .models import WebUser
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import math
 from email_validator import validate_email,EmailNotValidError
@@ -33,7 +33,7 @@ def validate_input(name, interest):
 def check_existing_email(email):
     logger.info("check_existing_email")
     try:
-        email_check=User.objects.filter(email=email).exists()
+        email_check=WebUser.objects.filter(email=email).exists()
         if email_check :
             return JsonResponse(ErrorCodes.registration["EMAIL_ALREADY_EXISTS"])
         else:

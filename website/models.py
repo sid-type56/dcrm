@@ -5,37 +5,30 @@ from roles import Role
 import os
 from dotenv import load_dotenv
 from django.contrib.auth.hashers import make_password , check_password
+from django.contrib.auth.models import User, auth
+from django.contrib.auth.models import AbstractUser
 
 load_dotenv()
 
 # Create your models here.
 
-class User(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    email=models.EmailField(default=os.getenv("DEFAULT_USER_EMAIL"))
-    first_name = models.CharField(max_length = 50,validators=[MinLengthValidator(2)])
-    last_name = models.CharField(max_length=50,validators=[MinLengthValidator(2)])
-    phone = models.CharField(max_length=10,validators=[MinLengthValidator(10)])
-    updated_at = models.DateTimeField(auto_now_add=True)
-    role = models.IntegerField(default=Role.USER.value)
+class WebUser(AbstractUser):
+    pass
 
-    def __str__(self):
-        return (f"{self.first_name}{self.last_name}")
+# class UserAuth(models.Model):
+#     user = models.OneToOneField(WebUser,on_delete=models.CASCADE)
+#     email = models.EmailField(unique=True)
+#     password = models.CharField(max_length=128)
 
-class UserAuth(models.Model):
-    user = models.OneToOneField(User,on_delete=models.CASCADE)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128)
-
-    def __str__(self):
-        return self.email
+#     def __str__(self):
+#         return self.email
     
-    def set_password(self,raw_password):
-        self.password = make_password(raw_password)
-        return None
+#     def set_password(self,raw_password):
+#         self.password = make_password(raw_password)
+#         return None
     
-    def check_password(self,raw_password):
-        return check_password(raw_password,self.password)
+#     def check_password(self,raw_password):
+#         return check_password(raw_password,self.password)
 
 
 # class MyInterest(models.Model):
