@@ -50,8 +50,8 @@ load_dotenv()
 @csrf_exempt
 def user_login(request):
     logger.info("user_login")
-    username = request.POST.get("username")
-    password = request.POST.get("password")
+    username = request.data.get("username")
+    password = request.data.get("password")
     if (not username or not password):
         return JsonResponse(ErrorCodes.authentication["LOGIN_CREDENTIALS_REQUIRED"],status=400)
     try:
@@ -109,11 +109,11 @@ def add_user(request):
     password_pattern=r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,128}$'
     
     try:
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        phone = request.POST.get('phone')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        phone = request.data.get('phone')
+        email = request.data.get('email')
+        password = request.data.get('password')
         username=email
         logger.debug("password_pattern\t{0}\npassword\t{1}".format(password_pattern,password))
         if(not re.match(password_pattern,password)):
